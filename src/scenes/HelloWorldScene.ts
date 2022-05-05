@@ -1,39 +1,54 @@
-import Phaser from 'phaser'
+import Phaser from "phaser";
+import config from "../config";
 
-export default class HelloWorldScene extends Phaser.Scene
-{
-	constructor()
-	{
-		super('hello-world')
-	}
+export default class HelloWorldScene extends Phaser.Scene {
+  constructor() {
+    super("hello-world");
+  }
 
-	preload()
-    {
-        this.load.setBaseURL('http://labs.phaser.io')
+  preload() {
+    this.load.image("bb", "images/bishopb.png");
+    this.load.image("bk", "images/kingb.png");
+    this.load.image("bn", "images/knightb.png");
+    this.load.image("bp", "images/pawnb.png");
+    this.load.image("bq", "images/queenb.png");
+    this.load.image("br", "images/rookb.png");
+    this.load.image("wb", "images/bishopw.png");
+    this.load.image("wk", "images/kingw.png");
+    this.load.image("wn", "images/knightw.png");
+    this.load.image("wp", "images/pawnw.png");
+    this.load.image("wq", "images/queenw.png");
+    this.load.image("wr", "images/rookw.png");
+  }
 
-        this.load.image('sky', 'assets/skies/space3.png')
-        this.load.image('logo', 'assets/sprites/phaser3-logo.png')
-        this.load.image('red', 'assets/particles/red.png')
-    }
+  create() {}
 
-    create()
-    {
-        this.add.image(400, 300, 'sky')
+  update() {
+    const blockSize: number = parseInt(config.width!.toString()) / 8;
+    const board = [
+      ["br", "bn", "bb", "bq", "bk", "bb", "bn", "br"],
+      ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["", "", "", "", "", "", "", ""],
+      ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
+      ["wr", "wn", "wb", "wq", "wk", "wb", "wn", "wr"],
+    ];
 
-        const particles = this.add.particles('red')
+    board.forEach((row, i) => {
+      row.forEach((value, j) => {
+        const x = j * blockSize + blockSize / 2;
+        const y = i * blockSize + blockSize / 2;
+        const color = (i + j) % 2 === 1 ? 0x222222 : 0xeeeeee;
 
-        const emitter = particles.createEmitter({
-            speed: 100,
-            scale: { start: 1, end: 0 },
-            blendMode: 'ADD'
-        })
+        this.add.rectangle(x, y, blockSize, blockSize, color);
 
-        const logo = this.physics.add.image(400, 100, 'logo')
-
-        logo.setVelocity(100, 200)
-        logo.setBounce(1, 1)
-        logo.setCollideWorldBounds(true)
-
-        emitter.startFollow(logo)
-    }
+        if (value !== "") {
+          const img = this.add.image(x, y, value);
+          img.setScale((blockSize / img.width) * 0.8);
+        }
+      });
+    });
+  }
 }
