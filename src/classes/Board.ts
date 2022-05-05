@@ -2,22 +2,15 @@ import Phaser from "phaser";
 import config from "../config";
 
 export default class Board {
-  private data: string[][];
+  private data: string;
+  private nData: string[];
   private sceneRef: Phaser.Scene;
   private blockSize: number;
 
   constructor(scene: Phaser.Scene) {
-    this.data = [
-      ["br", "bn", "bb", "bq", "bk", "bb", "bn", "br"],
-      ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
-      ["", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", ""],
-      ["", "", "", "", "", "", "", ""],
-      ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
-      ["wr", "wn", "wb", "wq", "wk", "wb", "wn", "wr"],
-    ];
-
+    // this.data = "r1b1k1nr/p2p1pNp/n2B4/1p1NP2P/6P1/3P1Q2/P1P1K3/q5b1";
+    this.data = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    this.nData = this.normalizeData();
     this.sceneRef = scene;
     this.blockSize = parseInt(config.width!.toString()) / 8;
   }
@@ -45,14 +38,27 @@ export default class Board {
     }
   }
 
+  /* Transforms "n2B4" to "n22B4444" */
+  private normalizeData() {
+    return this.data.split("/").map((row) => {
+      const rowWithFullChars = [...row].map((c) => {
+        return !isNaN(parseInt(c)) ? Array(parseInt(c)).fill(c).join("") : c;
+      });
+
+      const normalizedRow = rowWithFullChars.join("");
+
+      return normalizedRow;
+    });
+  }
+
   private drawBoard() {
     const arr = Array(8).fill(Array(8).fill(0));
 
     arr.forEach((row, j) => {
-      row.forEach((value, i) => {
+      row.forEach((_, i) => {
         const x = i * this.blockSize + this.blockSize / 2;
         const y = j * this.blockSize + this.blockSize / 2;
-        const color = (i + j) % 2 === 1 ? 0x222222 : 0xeeeeee;
+        const color = (i + j) % 2 === 1 ? 0x769656 : 0xeeeed2;
 
         this.sceneRef.add.rectangle(
           x,
@@ -61,11 +67,6 @@ export default class Board {
           this.blockSize,
           color
         );
-
-        // if (value !== "") {
-        //   const img = this.sceneRef.add.image(x, y, value);
-        //   img.setScale((blockSize / img.width) * 0.8);
-        // }
       });
     });
   }
@@ -94,8 +95,26 @@ export default class Board {
     });
   }
 
+  private drawPieces() {
+    this.nData.forEach((row, j) => {
+      [...row].forEach((c, i) => {
+        if ("rnbqkbnrRNBQKBNRpP".split("").includes(c)) {
+          this.drawPiece(i, j, c);
+        }
+      });
+    });
+  }
+
+  private drawPiece(i: number, j: number, pieceCode: string) {
+    const x = i * this.blockSize + this.blockSize / 2;
+    const y = j * this.blockSize + this.blockSize / 2;
+    const img = this.sceneRef.add.image(x, y, `piece_${pieceCode}`);
+    img.setScale((this.blockSize / img.width) * 0.8);
+  }
+
   update() {
     this.drawBoard();
     this.drawNumbersAndLetters();
+    this.drawPieces();
   }
 }
